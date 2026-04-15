@@ -308,21 +308,21 @@ def main():
                 st.write("**推荐工具:**", ", ".join(step['tools']))
                 st.write("**实施要点:**")
                 if step['step'] == 1:
-                    st.write("- 建立项目管理系统
+                    st.write("""- 建立项目管理系统
 - 设置任务分类
-- 创建模板和工作流")
+- 创建模板和工作流""")
                 elif step['step'] == 2:
-                    st.write("- 选择专业工具
+                    st.write("""- 选择专业工具
 - 学习核心功能
-- 整合到日常工作")
+- 整合到日常工作""")
                 elif step['step'] == 3:
-                    st.write("- 设置账单系统
+                    st.write("""- 设置账单系统
 - 建立客户管理系统
-- 优化收款流程")
+- 优化收款流程""")
                 elif step['step'] == 4:
-                    st.write("- 探索自动化工具
+                    st.write("""- 探索自动化工具
 - 建立API集成
-- 持续优化效率")
+- 持续优化效率""")
         
         # 成本分析
         st.write("### 💰 成本效益分析")

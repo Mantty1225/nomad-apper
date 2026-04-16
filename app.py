@@ -587,6 +587,7 @@ def main():
     st.write("**数字游民签证助手**")
 
     # 侧边栏
+    with st.sidebar:
         st.write("### 💰 定价")
         st.write("**基础分析** - 免费")
         st.write("- 国家匹配")

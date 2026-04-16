@@ -341,11 +341,11 @@ def main():
         for phase in premium_data['learning_path']:
             with st.expander(f"**{phase['phase']}** - {phase['focus']}（{phase['duration']}）"):
                 if phase['phase'] == "基础设置":
-                    st.write("- 观看官方教程
+                    st.write("""- 观看官方教程
 - 完成基础设置
-- 导入示例数据")
+- 导入示例数据""")
                 elif phase['phase'] == "工作流建立":
-                    st.write("- 设计个人工作流
+                    st.write("""- 设计个人工作流
 - 建立项目模板
 - 测试和调优")
                 elif phase['phase'] == "高级功能":

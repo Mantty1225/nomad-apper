@@ -187,13 +187,14 @@ def premium_analysis(user_info):
     for rec in analysis['recommendations']:
         for app in rec['apps']:
             if '付费' in app['price']:
-                if category == '生产力':
+                cat = rec['category']
+                if cat == '生产力':
                     monthly_cost += 10
                     yearly_cost += 100
-                elif category == '设计创意':
+                elif cat == '设计创意':
                     monthly_cost += 20
                     yearly_cost += 200
-                elif category == '开发工具':
+                elif cat == '开发工具':
                     monthly_cost += 15
                     yearly_cost += 150
 
@@ -345,7 +346,7 @@ def display_premium_analysis(user_info):
 def main():
     """主函数"""
     st.title("🌍 Nomad Apper")
-    st.subtitle("数字游民应用推荐系统")
+    st.write("**数字游民应用推荐系统**")
 
     # 侧边栏
     with st.sidebar:

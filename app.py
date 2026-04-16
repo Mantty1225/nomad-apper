@@ -437,34 +437,7 @@ COUNTRIES_DB = {
     }
 }
 
-# 应用数据库
-APP_DATABASE = {
-    "生产力": [
-        {"name": "Notion", "type": "笔记管理", "price": "免费/付费", "rating": 4.8, "url": "https://notion.so", "description": "全能型笔记和项目管理工具"},
-        {"name": "Obsidian", "type": "知识库", "price": "免费/付费", "rating": 4.7, "url": "https://obsidian.md", "description": "本地知识图谱笔记工具"},
-        {"name": "Todoist", "type": "任务管理", "price": "免费/付费", "rating": 4.6, "url": "https://todoist.com", "description": "简洁高效的任务管理应用"},
-    ],
-    "设计创意": [
-        {"name": "Figma", "type": "UI设计", "price": "免费/付费", "rating": 4.9, "url": "https://figma.com", "description": "协作式UI设计工具"},
-        {"name": "Canva", "type": "平面设计", "price": "免费/付费", "rating": 4.7, "url": "https://canva.com", "description": "简单易用的设计平台"},
-        {"name": "Adobe Creative Suite", "type": "专业设计", "price": "付费", "rating": 4.8, "url": "https://adobe.com", "description": "专业创意软件套件"},
-    ],
-    "开发工具": [
-        {"name": "VS Code", "type": "代码编辑器", "price": "免费", "rating": 4.9, "url": "https://code.visualstudio.com", "description": "微软开发的轻量级代码编辑器"},
-        {"name": "GitHub", "type": "代码托管", "price": "免费/付费", "rating": 4.8, "url": "https://github.com", "description": "代码托管和协作平台"},
-        {"name": "Postman", "type": "API测试", "price": "免费/付费", "rating": 4.6, "url": "https://postman.com", "description": "API开发和测试工具"},
-    ],
-    "财务管理": [
-        {"name": "QuickBooks", "type": "会计软件", "price": "付费", "rating": 4.5, "url": "https://quickbooks.intuit.com", "description": "中小企业会计解决方案"},
-        {"name": "Expensify", "type": "费用报销", "price": "免费/付费", "rating": 4.4, "url": "https://expensify.com", "description": "智能费用管理工具"},
-        {"name": "Wise", "type": "国际转账", "price": "按交易收费", "rating": 4.7, "url": "https://wise.com", "description": "低成本国际汇款服务"},
-    ],
-    "市场营销": [
-        {"name": "Mailchimp", "type": "邮件营销", "price": "免费/付费", "rating": 4.5, "url": "https://mailchimp.com", "description": "电子邮件营销平台"},
-        {"name": "Buffer", "type": "社交媒体", "price": "免费/付费", "rating": 4.4, "url": "https://buffer.com", "description": "社交媒体管理工具"},
-        {"name": "SEMrush", "type": "SEO工具", "price": "付费", "rating": 4.6, "url": "https://semrush.com", "description": "全方位SEO和营销工具"},
-    ]
-}
+
 
 def calculate_match(user_profile, country_data):
     """计算匹配度"""
@@ -544,49 +517,6 @@ def premium_visa_analysis(user_profile):
     # 显示全部
     return recommendations
 
-def app_recommendation_analysis(user_profile):
-    """应用推荐分析"""
-    profession = user_profile.get('profession', '').lower()
-    budget = user_profile.get('budget_range', 5000)
-
-    recommendations = []
-
-    # 根据职业推荐
-    if '设计' in profession or 'design' in profession or '创意' in profession:
-        recommendations.append({
-            'category': '设计创意',
-            'apps': APP_DATABASE['设计创意'],
-            'priority': '高',
-            'reason': '基于您的设计背景，推荐专业设计工具'
-        })
-    elif '开发' in profession or 'program' in profession or '代码' in profession:
-        recommendations.append({
-            'category': '开发工具',
-            'apps': APP_DATABASE['开发工具'],
-            'priority': '高',
-            'reason': '作为开发人员，这些工具将提高您的工作效率'
-        })
-    elif '营销' in profession or 'market' in profession or '推广' in profession:
-        recommendations.append({
-            'category': '市场营销',
-            'apps': APP_DATABASE['市场营销'],
-            'priority': '高',
-            'reason': '针对营销工作，推荐专业工具'
-        })
-    else:
-        recommendations.append({
-            'category': '生产力',
-            'apps': APP_DATABASE['生产力'],
-            'priority': '高',
-            'reason': '通用生产力工具推荐'
-        })
-
-    # 根据预算调整
-    if budget < 5000:
-        for rec in recommendations:
-            rec['apps'] = [app for app in rec['apps'] if '免费' in app['price']]
-
-    return recommendations
 
 def display_visa_analysis(user_profile, premium=False):
     """显示签证分析结果"""
@@ -650,35 +580,11 @@ def display_visa_analysis(user_profile, premium=False):
                         else:
                             st.write(content)
 
-def display_app_analysis(user_profile, premium=False):
-    """显示应用分析结果"""
-    recommendations = app_recommendation_analysis(user_profile)
-
-    st.write("### 🎯 为您推荐的应用")
-
-    for rec in recommendations:
-        category = rec['category']
-        apps = rec['apps']
-        priority = rec['priority']
-        reason = rec['reason']
-
-        priority_icon = "🟢" if priority == '高' else "🟡"
-        st.write(f"#### {priority_icon} {category}")
-        st.write(f"*{reason}*")
-
-        cols = st.columns(3)
-        for idx, app in enumerate(apps):
-            with cols[idx % 3]:
-                st.write(f"**{app['name']}**")
-                st.write(f"⭐ {app['rating']} | {app['price']}")
-                st.link_button("访问", app['url'])
-
-        st.divider()
 
 def main():
     """主函数"""
     st.title("🌍 Nomad Suite")
-    st.write("**数字游民签证 + 应用推荐助手**")
+    st.write("**数字游民签证助手**")
 
     # 侧边栏
     with st.sidebar:
@@ -692,19 +598,15 @@ def main():
 
         st.write("### 💰 定价")
         st.write("**基础分析** - 免费")
-        st.write("- 国家/应用推荐")
+        st.write("- 国家匹配")
         st.write("- 基础信息")
         st.divider()
         st.write("**深度分析** - ¥99")
         st.write("- 完整指南")
         st.write("- 核心材料清单")
         st.write("- 风险与注意事项")
-
-    # 功能选择
-    if feature == "签证助手":
-        show_visa_assistant()
-    else:
-        show_app_assistant()
+#直接显示签证助手
+   show_visa_assistant()
 
 def show_visa_assistant():
     """显示签证助手"""
@@ -861,71 +763,6 @@ def show_visa_assistant():
         else:
             display_visa_analysis(user_profile, premium=True)
 
-def show_app_assistant():
-    """显示应用推荐助手"""
-    st.header("💻 数字游民应用推荐")
-
-    # 简化的表单
-    if not st.session_state.get('app_analysis_done', False):
-        with st.form("app_form"):
-            profession = st.text_input(
-                "职业",
-                placeholder="如：程序员、设计师、营销人员"
-            )
-
-            monthly_income = st.number_input(
-                "月收入（人民币）",
-                min_value=0,
-                max_value=1000000,
-                value=15000,
-                step=1000
-            )
-
-            budget_range = st.number_input(
-                "工具预算（元/月）",
-                min_value=0,
-                max_value=5000,
-                value=500,
-                step=50,
-                help="每月用于购买工具软件的预算"
-            )
-
-            experience = st.selectbox(
-                "数字游民经验",
-                ["初级", "中级", "高级"]
-            )
-
-            submitted = st.form_submit_button("开始分析", type="primary")
-
-            if submitted:
-                if not profession:
-                    st.error("请填写职业")
-                else:
-                    st.session_state.user_profile = {
-                        'profession': profession,
-                        'monthly_income': monthly_income,
-                        'budget_range': budget_range,
-                        'experience': experience
-                    }
-                    st.session_state.app_analysis_done = True
-                    st.rerun()
-
-    else:
-        user_profile = st.session_state.user_profile
-
-        if not st.session_state.get('app_payment_done', False):
-            display_app_analysis(user_profile, premium=False)
-
-            st.divider()
-            st.write("### 🔓 解锁深度分析")
-
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                if st.button("支付 ¥99 解锁完整推荐", type="primary"):
-                    st.session_state.app_payment_done = True
-                    st.rerun()
-        else:
-            display_app_analysis(user_profile, premium=True)
 
 if __name__ == "__main__":
     main()

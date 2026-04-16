@@ -6,18 +6,436 @@ import hashlib
 
 # 页面配置
 st.set_page_config(
-    page_title="Nomad Apper - 数字游民应用推荐",
+    page_title="Nomad Suite - 数字游民助手",
     page_icon="🌍",
     layout="wide"
 )
 
 # 初始化session state
-if 'user_info' not in st.session_state:
-    st.session_state.user_info = {}
+if 'user_profile' not in st.session_state:
+    st.session_state.user_profile = {}
 if 'basic_analysis_done' not in st.session_state:
     st.session_state.basic_analysis_done = False
 if 'payment_done' not in st.session_state:
     st.session_state.payment_done = False
+
+# 国家数据库
+COUNTRIES_DB = {
+    "葡萄牙": {
+        "优势": ["欧盟身份", "税务优惠", "安全", "英语普及"],
+        "劣势": ["生活成本较高", "语言障碍", "审批慢"],
+        "收入要求": "每月€3040",
+        "存款要求": "€9120",
+        "每月生活费": "€800-1200",
+        "税率": "10% (NHR计划)",
+        "适合人群": ["高收入人群", "想拿欧盟身份", "重视安全"],
+        "签证类型": "D7签证",
+        "处理时间": "3-4个月",
+        "匹配度": 0,
+        "大洲": "欧洲",
+        "气候": "温和",
+        "生活方式": ["海滩", "城市", "文化丰富"],
+
+        "付费解读": {
+            "资格与材料": {
+                "职业要求": "葡萄牙D7签证对职业无严格限制，重点看被动收入或远程工作收入。程序员、设计师、自媒体、咨询顾问等远程工作完全符合条件。",
+                "收入形式": "支持多种收入形式：工资、自由职业、股息、租金、退休金等。需提供6个月银行流水和收入证明，建议收入稳定。",
+                "核心材料": [
+                    "有效护照（有效期6个月以上）",
+                    "无犯罪记录证明（双认证）",
+                    "收入证明（6个月银行流水）",
+                    "葡萄牙住址证明（租房合同）",
+                    "健康保险（保额≥3万欧元）",
+                    "动机信（说明移居目的）"
+                ],
+                "材料时效": "无犯罪记录证明需3个月内开具，银行流水需最近6个月，所有非英文文件需翻译认证。"
+            },
+            "生活与保障": {
+                "医疗保障": "获得居留许可后可加入葡萄牙公共医疗系统(SNS)，年费约300-400欧元。私立保险约50-100欧元/月，看病报销80-90%。",
+                "住房情况": "里斯本单间公寓€600-900/月，波尔图€400-700/月。建议先短租3个月适应，再决定长租。",
+                "家庭随行": "配偶和18岁以下子女可一同申请，需提供结婚证明和子女出生证明，每增加一人需额外证明收入能力。",
+                "教育资源": "公立学校免费（葡萄牙语教学），国际学校€6000-15000/年（英语教学），适合带娃家庭。"
+            },
+            "税务与身份": {
+                "税务政策": "NHR计划（新居民税收优惠）前10年享受优惠：外国收入免税（部分国家），养老金按10%征税，高附加值职业收入按20%征税。",
+                "居住要求": "第一年住满7天，之后每两年住满14天。5年后可申请永居或入籍，需通过基础葡萄牙语考试（A2水平）。",
+                "入籍优势": "葡萄牙护照全球排名第4，免签186国，可在欧盟任意国家工作居住。"
+            },
+            "风险与注意事项": {
+                "签证期限": "首次获批4个月有效期入境签证，入境后需4个月内申请居留许可，有效期2年，可续签3年。",
+                "常见坑点": [
+                    "收入证明不稳定容易被拒",
+                    "租房合同需真实有效，假合同会被查",
+                    "保险必须在葡萄牙有效",
+                    "材料翻译需认证，自己翻译无效"
+                ],
+                "出入境注意": "持有D7签证可自由出入申根区，但需满足居住要求。建议保留出入境记录和居住证明。",
+                "续签要点": "续签需证明仍有稳定收入、有住址、有保险，建议提前3个月准备材料。"
+            }
+        }
+    },
+    "西班牙": {
+        "优势": ["欧盟身份", "生活成本低", "气候好", "文化丰富"],
+        "劣势": ["失业率较高", "语言障碍", "官僚复杂"],
+        "收入要求": "每月€2151",
+        "存款要求": "€25812",
+        "每月生活费": "€600-900",
+        "税率": "24% (前6年)",
+        "适合人群": ["预算有限", "喜欢文化", "追求性价比"],
+        "签证类型": "非盈利签证",
+        "处理时间": "2-3个月",
+        "匹配度": 0,
+        "大洲": "欧洲",
+        "气候": "温暖",
+        "生活方式": ["城市", "文化丰富", "美食丰富"],
+
+        "付费解读": {
+            "资格与材料": {
+                "职业要求": "西班牙非盈利签证不限制职业，但要求证明有稳定被动收入或远程工作收入，不能占用本地就业机会。",
+                "收入形式": "接受租金、股息、退休金、远程工作收入等。存款证明很重要，€25812是最低要求，建议更多。",
+                "核心材料": [
+                    "有效护照",
+                    "无犯罪记录证明（双认证，3个月内）",
+                    "健康证明（指定医院体检）",
+                    "收入证明（6个月流水）",
+                    "存款证明（€25812以上）",
+                    "西班牙住址证明（租房合同）",
+                    "健康保险"
+                ],
+                "资金证明": "存款证明是关键，建议准备€30000以上。收入证明需稳定，月收入€2151是最低标准。"
+            },
+            "生活与保障": {
+                "医疗保障": "公立医疗免费（需缴纳社保），私立保险约50-80欧元/月。西班牙医疗水平世界领先。",
+                "住房情况": "马德里单间€500-800/月，巴塞罗那€600-900/月，小城市€300-500/月。",
+                "家庭随行": "配偶和子女可一同申请，每增加一人需额外证明收入能力（€537/月/人）。",
+                "教育资源": "公立学校免费（西班牙语教学），国际学校€8000-15000/年。"
+            },
+            "税务与身份": {
+                "税务政策": "前6年非居民税率24%，之后按累进税率。外国养老金按24%征税。",
+                "居住要求": "无严格居住要求，但建议每年住满183天以维持居留。5年后可申请永居。",
+                "入籍要求": "居住10年可申请入籍，需通过西班牙语考试和文化考试。"
+            },
+            "风险与注意事项": {
+                "签证期限": "首次获批1年，可续签2年，再续签2年，5年后可申请永居。",
+                "常见坑点": [
+                    "存款证明不足容易被拒",
+                    "收入证明需稳定，波动大会影响",
+                    "租房合同需真实，假合同风险高",
+                    "保险需覆盖西班牙全境"
+                ],
+                "工作限制": "非盈利签证不允许在西班牙工作，只能远程工作或为外国公司工作。"
+            }
+        }
+    },
+    "泰国": {
+        "优势": ["低成本", "气候好", "美食丰富", "华人多"],
+        "劣势": ["语言障碍", "签证复杂", "政治不稳定"],
+        "收入要求": "无明确要求",
+        "存款要求": "约50万泰铢",
+        "每月生活费": "¥3000-5000",
+        "税率": "0% (外国收入)",
+        "适合人群": ["预算有限", "喜欢热带", "重视性价比"],
+        "签证类型": "精英签证/LTR签证",
+        "处理时间": "1-2个月",
+        "匹配度": 0,
+        "大洲": "亚洲",
+        "气候": "热带",
+        "生活方式": ["海滩", "低成本", "美食丰富"],
+
+        "付费解读": {
+            "资格与材料": {
+                "精英签证": "5年60万泰铢，10年100万泰铢，20年200万泰铢。无年龄和收入要求，材料简单，审批快。",
+                "LTR签证": "针对远程工作者，需证明月收入≥8万泰铢或存款≥100万泰铢。有效期10年，可工作。",
+                "核心材料": [
+                    "有效护照（6个月以上）",
+                    "照片（2寸白底）",
+                    "申请表",
+                    "资金证明（存款证明）",
+                    "收入证明（LTR签证需要）"
+                ],
+                "申请流程": "精英签证可在线申请，1-2周获批。LTR签证需通过泰国移民局申请，1-2个月。"
+            },
+            "生活与保障": {
+                "医疗保障": "私立医院水平高，费用低。保险约2000-5000泰铢/年。曼谷、清迈医疗设施完善。",
+                "住房情况": "曼谷单间8000-15000泰铢/月，清迈5000-8000泰铢/月。可签长期租约，押金2个月。",
+                "华人社区": "曼谷、清迈华人多，有唐人街，中餐馆多，生活便利。",
+                "教育资源": "国际学校学费约20-40万泰铢/年，比国内便宜。有中文国际学校。"
+            },
+            "税务与身份": {
+                "税务政策": "外国收入免税，泰国境内收入按累进税率。需住满180天才成为税务居民。",
+                "居住要求": "精英签证每年需报到一次，LTR签证每90天报到一次。",
+                "长期居留": "LTR签证10年可续签，精英签证到期可续签。"
+            },
+            "风险与注意事项": {
+                "签证政策": "泰国签证政策经常变化，需关注最新政策。精英签证政策相对稳定。",
+                "常见坑点": [
+                    "精英签证选择正规代理，避免被骗",
+                    "租房合同需仔细阅读，避免纠纷",
+                    "90天报到必须按时，否则罚款",
+                    "工作需申请工作许可，否则非法"
+                ],
+                "政治风险": "泰国政治不稳定，偶尔有抗议活动，需关注安全。"
+            }
+        }
+    },
+    "墨西哥": {
+        "优势": ["低成本", "离美国近", "美食丰富", "文化丰富"],
+        "劣势": ["安全问题", "语言障碍", "基础设施差"],
+        "收入要求": "每月约$1500-2000",
+        "存款要求": "无明确要求",
+        "每月生活费": "¥4000-6000",
+        "税率": "0-30% (累进)",
+        "适合人群": ["预算有限", "喜欢文化", "想靠近美国"],
+        "签证类型": "临时居民签证",
+        "处理时间": "1-2个月",
+        "匹配度": 0,
+        "大洲": "美洲",
+        "气候": "多样",
+        "生活方式": ["低成本", "文化丰富", "美食丰富"],
+
+        "付费解读": {
+            "资格与材料": {
+                "临时居民签证": "有效期1年，可续签3次（共4年）。之后可申请永久居留。",
+                "收入要求": "需证明月收入约$1500-2000，或存款$25000以上。要求相对宽松。",
+                "核心材料": [
+                    "有效护照",
+                    "照片",
+                    "申请表",
+                    "收入证明或存款证明",
+                    "住址证明"
+                ],
+                "申请流程": "可在墨西哥领事馆申请，也可入境后申请。建议在国内申请。"
+            },
+            "生活与保障": {
+                "医疗保障": "公立医疗免费（需加入社保），私立医院费用低。建议购买私立保险。",
+                "住房情况": "墨西哥城单间$300-500/月，坎昆$400-600/月。租房相对便宜。",
+                "安全注意": "选择安全区域居住，避免夜间单独外出。推荐墨西哥城、坎昆、普拉亚德尔卡曼。",
+                "教育资源": "国际学校学费约$5000-10000/年，比美国便宜。"
+            },
+            "税务与身份": {
+                "税务政策": "外国收入需申报，但可能有税收优惠。建议咨询税务专家。",
+                "居住要求": "临时居民签证无严格居住要求，但建议每年住满6个月。",
+                "永久居留": "4年后可申请永久居留，需证明持续收入。"
+            },
+            "风险与注意事项": {
+                "安全风险": "墨西哥部分地区治安差，需选择安全城市。避免去边境地区。",
+                "常见坑点": [
+                    "选择安全区域居住",
+                    "租房合同需仔细阅读",
+                    "购买合适保险",
+                    "了解当地法律"
+                ],
+                "文化差异": "墨西哥文化与中国差异大，需适应当地生活方式。"
+            }
+        }
+    },
+    "克罗地亚": {
+        "优势": ["欧盟身份", "生活成本低", "海滩优美", "安全"],
+        "劣势": ["语言障碍", "冬季寒冷", "就业难"],
+        "收入要求": "每月€2500",
+        "存款要求": "€30000",
+        "每月生活费": "€500-800",
+        "税率": "12% (外国收入)",
+        "适合人群": ["喜欢海滩", "预算有限", "想拿欧盟身份"],
+        "签证类型": "数字游民签证",
+        "处理时间": "1个月",
+        "匹配度": 0,
+        "大洲": "欧洲",
+        "气候": "地中海",
+        "生活方式": ["海滩", "低成本", "安全"],
+
+        "付费解读": {
+            "资格与材料": {
+                "数字游民签证": "专门针对远程工作者，需证明为外国公司工作或自有公司。有效期1年，可续签。",
+                "收入要求": "月收入需达到€2500（税前），或年收入€30000。需连续6个月达到此标准。",
+                "核心材料": [
+                    "有效护照",
+                    "无犯罪记录证明",
+                    "远程工作证明（合同或公司证明）",
+                    "收入证明（6个月流水）",
+                    "住址证明",
+                    "健康保险"
+                ],
+                "申请流程": "可在线申请，审批快，通常1个月内获批。"
+            },
+            "生活与保障": {
+                "医疗保障": "公立医疗免费（需缴纳社保），私立保险约30-50欧元/月。",
+                "住房情况": "萨格勒布单间€300-500/月，海边城市€400-600/月。夏季旅游旺季房租上涨。",
+                "海滩生活": "克罗地亚有1000多个岛屿，海滩优美。斯普利特、杜布罗夫尼克是热门选择。",
+                "教育资源": "公立学校免费（克罗地亚语），国际学校少且贵。"
+            },
+            "税务与身份": {
+                "税务政策": "外国收入按12%征税，相对优惠。住满183天成为税务居民。",
+                "居住要求": "无严格居住要求，但需有住址证明。",
+                "欧盟优势": "克罗地亚是欧盟成员国，持有居留许可可在申根区自由旅行。"
+            },
+            "风险与注意事项": {
+                "季节性": "克罗地亚旅游季节性强，夏季人多价高，冬季冷清。",
+                "常见坑点": [
+                    "冬季供暖费用高",
+                    "海边城市夏季房租翻倍",
+                    "语言障碍较大",
+                    "就业机会少"
+                ],
+                "生活成本": "虽然整体成本低，但旅游地区物价高。"
+            }
+        }
+    },
+    "巴拿马": {
+        "优势": ["税收友好", "美元使用", "生活成本低", "气候好"],
+        "劣势": ["语言障碍", "基础设施一般", "医疗水平一般"],
+        "收入要求": "每月$1000",
+        "存款要求": "$5000",
+        "每月生活费": "¥4000-6000",
+        "税率": "0% (外国收入)",
+        "适合人群": ["税务优化", "预算有限", "喜欢热带"],
+        "签证类型": "友好国家签证",
+        "处理时间": "1个月",
+        "匹配度": 0,
+        "大洲": "美洲",
+        "气候": "热带",
+        "生活方式": ["低成本", "海滩", "税务友好"],
+
+        "付费解读": {
+            "资格与材料": {
+                "友好国家签证": "针对50个友好国家公民（包括中国），需证明月收入$1000或存款$5000。有效期2年，可续签。",
+                "申请条件": "需在巴拿马银行存款$5000，并证明月收入$1000。可远程工作。",
+                "核心材料": [
+                    "有效护照",
+                    "无犯罪记录证明",
+                    "健康证明",
+                    "银行存款证明",
+                    "收入证明"
+                ],
+                "申请流程": "简单快捷，通常1个月内获批。可在巴拿马境内申请。"
+            },
+            "生活与保障": {
+                "医疗保障": "公立医疗免费（需加入社保），私立医院费用低。建议购买私立保险。",
+                "住房情况": "巴拿马城单间$400-600/月，海边城市$300-500/月。",
+                "税务优势": "巴拿马对外国收入免税，是税务优化的好选择。",
+                "美元使用": "巴拿马使用美元，无汇率风险。"
+            },
+            "税务与身份": {
+                "税务政策": "外国收入免税，无资本利得税，无遗产税。",
+                "居住要求": "无严格居住要求，但建议每年住满一定时间。",
+                "永久居留": "5年后可申请永久居留，需证明持续收入。"
+            },
+            "风险与注意事项": {
+                "基础设施": "巴拿马基础设施不如发达国家，偶尔停电。",
+                "常见坑点": [
+                    "选择安全区域居住",
+                    "了解当地法律",
+                    "购买合适保险",
+                    "注意防潮防霉"
+                ],
+                "医疗水平": "巴拿马城医疗水平较好，但其他地区一般。"
+            }
+        }
+    },
+    "马来西亚": {
+        "优势": ["低成本", "华人多", "英语普及", "医疗好"],
+        "劣势": ["气候湿热", "签证复杂", "政治不稳定"],
+        "收入要求": "每月$2500",
+        "存款要求": "无明确要求",
+        "每月生活费": "¥3000-5000",
+        "税率": "0-30% (累进)",
+        "适合人群": ["华人社区", "预算有限", "医疗需求"],
+        "签证类型": "第二家园签证",
+        "处理时间": "2-3个月",
+        "匹配度": 0,
+        "大洲": "亚洲",
+        "气候": "热带",
+        "生活方式": ["低成本", "华人社区", "美食丰富"],
+
+        "付费解读": {
+            "资格与材料": {
+                "第二家园签证": "针对50岁以上申请人，需证明月收入$2500或存款$150000。50岁以下要求更高。",
+                "申请条件": "35-49岁需存款$150000，月收入$2500；50岁以上需存款$100000，月收入$2500。",
+                "核心材料": [
+                    "有效护照",
+                    "无犯罪记录证明",
+                    "健康证明",
+                    "存款证明",
+                    "收入证明",
+                    "结婚证（如适用）"
+                ],
+                "申请流程": "通过马来西亚旅游局申请，审批时间2-3个月。"
+            },
+            "生活与保障": {
+                "医疗保障": "医疗水平高，费用低。私立医院服务好，保险约1000-2000马币/年。",
+                "住房情况": "吉隆坡单间1500-2500马币/月，槟城1000-2000马币/月。可购买房产。",
+                "华人社区": "马来西亚华人占25%，华语通用，中餐馆多，生活便利。",
+                "教育资源": "国际学校学费约2-4万马币/年，有中文国际学校。"
+            },
+            "税务与身份": {
+                "税务政策": "外国收入免税，境内收入按累进税率。住满182天成为税务居民。",
+                "居住要求": "第二家园签证无严格居住要求，但建议每年住满一定时间。",
+                "永久居留": "10年后可申请永久居留，需满足一定条件。"
+            },
+            "风险与注意事项": {
+                "政策变化": "第二家园签证政策经常变化，需关注最新政策。",
+                "常见坑点": [
+                    "选择正规中介",
+                    "了解当地法律",
+                    "注意汇率风险",
+                    "购买合适保险"
+                ],
+                "气候适应": "马来西亚气候湿热，需时间适应。"
+            }
+        }
+    },
+    "印度尼西亚": {
+        "优势": ["低成本", "海滩优美", "签证简单", "华人多"],
+        "劣势": ["基础设施差", "语言障碍", "医疗水平一般"],
+        "收入要求": "无明确要求",
+        "存款要求": "无明确要求",
+        "每月生活费": "¥2000-4000",
+        "税率": "0% (外国收入)",
+        "适合人群": ["预算有限", "喜欢海滩", "简单生活"],
+        "签证类型": "商务签证/社交签证",
+        "处理时间": "1周",
+        "匹配度": 0,
+        "大洲": "亚洲",
+        "气候": "热带",
+        "生活方式": ["海滩", "低成本", "自然风光"],
+
+        "付费解读": {
+            "资格与材料": {
+                "签证类型": "商务签证（60天可延期）或社交签证（30天可延期），或投资签证（投资$50000以上）。",
+                "申请条件": "商务签证需当地公司担保，社交签证需印尼公民担保，投资签证需真实投资。",
+                "核心材料": [
+                    "有效护照",
+                    "照片",
+                    "申请表",
+                    "担保信（商务/社交签证）",
+                    "投资证明（投资签证）"
+                ],
+                "申请流程": "可在印尼领事馆申请，也可落地签。商务签证可在线申请。"
+            },
+            "生活与保障": {
+                "医疗保障": "私立医院费用低，但水平一般。建议购买国际保险。",
+                "住房情况": "巴厘岛别墅$500-1000/月，雅加达单间$200-400/月。",
+                "华人社区": "印尼华人多，但主要集中在雅加达、泗水、棉兰等城市。",
+                "教育资源": "国际学校少且贵，主要在雅加达和巴厘岛。"
+            },
+            "税务与身份": {
+                "税务政策": "外国收入免税，境内收入按累进税率。",
+                "居住要求": "签证需定期延期，投资签证可长期居留。",
+                "永久居留": "投资签证5年后可申请永久居留。"
+            },
+            "风险与注意事项": {
+                "基础设施": "印尼基础设施较差，交通拥堵，电力不稳定。",
+                "常见坑点": [
+                    "选择安全区域居住",
+                    "注意自然灾害（地震、火山）",
+                    "购买合适保险",
+                    "了解当地文化"
+                ],
+                "签证延期": "需定期延期签证，建议找正规代理。"
+            }
+        }
+    }
+}
 
 # 应用数据库
 APP_DATABASE = {
@@ -48,243 +466,208 @@ APP_DATABASE = {
     ]
 }
 
-def generate_user_id(email):
-    """生成用户ID"""
-    return hashlib.md5(email.encode()).hexdigest()[:10]
+def calculate_match(user_profile, country_data):
+    """计算匹配度"""
+    score = 50
 
-def basic_recommendation_analysis(user_info):
-    """基础推荐分析（免费）"""
-    profession = user_info.get('profession', '')
-    budget = user_info.get('budget', '中等')
+    # 收入匹配
+    monthly_income = user_profile.get('monthly_income', 0)
+    if monthly_income >= 30000:
+        score += 20
+    elif monthly_income >= 20000:
+        score += 10
+    elif monthly_income >= 10000:
+        score += 5
+
+    # 存款匹配
+    savings = user_profile.get('savings_amount', 0)
+    if savings >= 300000:
+        score += 15
+    elif savings >= 150000:
+        score += 10
+    elif savings >= 50000:
+        score += 5
+
+    # 偏好匹配
+    preference = user_profile.get('preference', [])
+    country_lifestyle = country_data.get('生活方式', [])
+
+    if preference and country_lifestyle:
+        match_count = len(set(preference) & set(country_lifestyle))
+        score += match_count * 3
+
+    # 大洲偏好
+    target_continent = user_profile.get('target_continent', [])
+    country_continent = country_data.get('大洲', '')
+    if country_continent in target_continent:
+        score += 10
+
+    # 气候偏好
+    climate_pref = user_profile.get('climate_preference', '')
+    country_climate = country_data.get('气候', '')
+    if climate_pref == country_climate:
+        score += 5
+
+    return min(score, 100)
+
+def visa_recommendation_analysis(user_profile):
+    """签证推荐分析"""
+    recommendations = []
+
+    for country, data in COUNTRIES_DB.items():
+        match_score = calculate_match(user_profile, data)
+
+        # 根据匹配度筛选
+        if match_score >= 40:
+            recommendations.append({
+                'country': country,
+                'score': match_score,
+                'data': data,
+                'priority': '高' if match_score >= 70 else '中' if match_score >= 55 else '低'
+            })
+
+    # 按匹配度排序
+    recommendations.sort(key=lambda x: x['score'], reverse=True)
+    return recommendations
+
+def basic_visa_analysis(user_profile):
+    """基础签证分析（免费）"""
+    recommendations = visa_recommendation_analysis(user_profile)
+
+    # 只显示前3个
+    return recommendations[:3]
+
+def premium_visa_analysis(user_profile):
+    """深度签证分析（付费）"""
+    recommendations = visa_recommendation_analysis(user_profile)
+
+    # 显示全部
+    return recommendations
+
+def app_recommendation_analysis(user_profile):
+    """应用推荐分析"""
+    profession = user_profile.get('profession', '').lower()
+    budget = user_profile.get('budget_range', 5000)
 
     recommendations = []
 
     # 根据职业推荐
-    if '设计' in profession or '创意' in profession:
+    if '设计' in profession or 'design' in profession or '创意' in profession:
         recommendations.append({
             'category': '设计创意',
-            'apps': APP_DATABASE['设计创意'][:2],
-            'reason': '基于您的设计背景，推荐以下创意工具'
+            'apps': APP_DATABASE['设计创意'],
+            'priority': '高',
+            'reason': '基于您的设计背景，推荐专业设计工具'
         })
-    elif '开发' in profession or '程序员' in profession:
+    elif '开发' in profession or 'program' in profession or '代码' in profession:
         recommendations.append({
             'category': '开发工具',
-            'apps': APP_DATABASE['开发工具'][:2],
+            'apps': APP_DATABASE['开发工具'],
+            'priority': '高',
             'reason': '作为开发人员，这些工具将提高您的工作效率'
         })
-    elif '营销' in profession or '市场' in profession:
+    elif '营销' in profession or 'market' in profession or '推广' in profession:
         recommendations.append({
             'category': '市场营销',
-            'apps': APP_DATABASE['市场营销'][:2],
-            'reason': '针对营销工作，推荐以下专业工具'
+            'apps': APP_DATABASE['市场营销'],
+            'priority': '高',
+            'reason': '针对营销工作，推荐专业工具'
         })
     else:
         recommendations.append({
             'category': '生产力',
-            'apps': APP_DATABASE['生产力'][:2],
+            'apps': APP_DATABASE['生产力'],
+            'priority': '高',
             'reason': '通用生产力工具推荐'
         })
 
     # 根据预算调整
-    if budget == '低':
+    if budget < 5000:
         for rec in recommendations:
             rec['apps'] = [app for app in rec['apps'] if '免费' in app['price']]
 
     return recommendations
 
-def premium_analysis(user_info):
-    """深度付费分析"""
-    profession = user_info.get('profession', '')
-    budget = user_info.get('budget', '中等')
-    experience = user_info.get('experience', '中级')
+def display_visa_analysis(user_profile, premium=False):
+    """显示签证分析结果"""
+    if premium:
+        recommendations = premium_visa_analysis(user_profile)
+        st.success("✅ 深度签证分析已解锁！")
+    else:
+        recommendations = basic_visa_analysis(user_profile)
+        st.success("✅ 基础签证分析完成！")
 
-    analysis = {
-        'profile_score': 0,
-        'recommendations': [],
-        'workflow_suggestions': [],
-        'cost_analysis': {},
-        'learning_path': []
-    }
+    st.write("### 🎯 为您推荐的国家")
 
-    # 用户画像评分
-    score = 50
-    if experience == '高级':
-        score += 20
-    elif experience == '中级':
-        score += 10
+    for rec in recommendations:
+        country = rec['country']
+        data = rec['data']
+        score = rec['score']
+        priority = rec['priority']
 
-    if budget in ['高', '中等']:
-        score += 15
+        priority_icon = "🟢" if priority == '高' else "🟡" if priority == '中' else "⚪"
 
-    analysis['profile_score'] = min(score, 100)
+        with st.expander(f"**{priority_icon} {country}** (匹配度: {score}%)", expanded=premium):
+            col1, col2 = st.columns(2)
 
-    # 深度推荐（所有类别）
-    for category, apps in APP_DATABASE.items():
-        if category == '生产力':
-            analysis['recommendations'].append({
-                'category': category,
-                'apps': apps,
-                'priority': '高',
-                'reason': '基础生产力工具是数字游民的必备'
-            })
-        elif '设计' in profession and category == '设计创意':
-            analysis['recommendations'].append({
-                'category': category,
-                'apps': apps,
-                'priority': '高',
-                'reason': '专业设计工具套件'
-            })
-        elif '开发' in profession and category == '开发工具':
-            analysis['recommendations'].append({
-                'category': category,
-                'apps': apps,
-                'priority': '高',
-                'reason': '开发工具链完整推荐'
-            })
-        elif '营销' in profession and category == '市场营销':
-            analysis['recommendations'].append({
-                'category': category,
-                'apps': apps,
-                'priority': '高',
-                'reason': '营销工具完整方案'
-            })
-        else:
-            analysis['recommendations'].append({
-                'category': category,
-                'apps': apps[:2],
-                'priority': '中',
-                'reason': f'{category}工具推荐'
-            })
+            with col1:
+                st.write("**基本信息**")
+                st.write(f"📍 大洲: {data['大洲']}")
+                st.write(f"🌡️ 气候: {data['气候']}")
+                st.write(f"💰 月收入要求: {data['收入要求']}")
+                st.write(f"🏦 存款要求: {data['存款要求']}")
+                st.write(f"💵 每月生活费: {data['每月生活费']}")
+                st.write(f"📊 税率: {data['税率']}")
 
-    # 工作流程建议
-    analysis['workflow_suggestions'] = [
-        {
-            'phase': '调研阶段',
-            'tasks': ['分析工作需求', '研究工具选项', '评估成本效益'],
-            'duration': '1-2天'
-        },
-        {
-            'phase': '试用阶段',
-            'tasks': ['注册免费试用', '测试核心功能', '收集团队反馈'],
-            'duration': '3-7天'
-        },
-        {
-            'phase': '实施阶段',
-            'tasks': ['购买付费版本', '配置工作环境', '导入历史数据'],
-            'duration': '1-2周'
-        },
-        {
-            'phase': '优化阶段',
-            'tasks': ['建立工作流程', '培训团队成员', '监控使用效果'],
-            'duration': '持续进行'
-        }
-    ]
+            with col2:
+                st.write("**签证信息**")
+                st.write(f"🛂 签证类型: {data['签证类型']}")
+                st.write(f"⏱️ 处理时间: {data['处理时间']}")
+                st.write(f"✅ 适合人群: {', '.join(data['适合人群'])}")
 
-    # 成本分析
-    monthly_cost = 0
-    yearly_cost = 0
+            st.write("**优势**")
+            for advantage in data['优势']:
+                st.write(f"✅ {advantage}")
 
-    for rec in analysis['recommendations']:
-        for app in rec['apps']:
-            if '付费' in app['price']:
-                cat = rec['category']
-                if cat == '生产力':
-                    monthly_cost += 10
-                    yearly_cost += 100
-                elif cat == '设计创意':
-                    monthly_cost += 20
-                    yearly_cost += 200
-                elif cat == '开发工具':
-                    monthly_cost += 15
-                    yearly_cost += 150
+            st.write("**劣势**")
+            for disadvantage in data['劣势']:
+                st.write(f"❌ {disadvantage}")
 
-    analysis['cost_analysis'] = {
-        'monthly': monthly_cost,
-        'yearly': yearly_cost,
-        'savings_tips': [
-            '选择年付计划通常可节省20-30%',
-            '利用教育优惠或初创企业折扣',
-            '优先选择集成度高的工具套件',
-            '定期评估工具使用率，取消不常用订阅'
-        ]
-    }
+            if premium and '付费解读' in data:
+                st.divider()
+                st.write("### 🔓 深度解读")
 
-    # 学习路径
-    analysis['learning_path'] = [
-        {
-            'phase': '基础设置',
-            'focus': '熟悉工具界面和基础功能',
-            'duration': '1-2周',
-            'milestones': ['完成账号设置', '创建第一个项目', '导入测试数据']
-        },
-        {
-            'phase': '工作流建立',
-            'focus': '建立个人工作流程',
-            'duration': '2-4周',
-            'milestones': ['设计工作流程', '创建模板', '优化操作步骤']
-        },
-        {
-            'phase': '高级功能',
-            'focus': '掌握高级特性和集成',
-            'duration': '1-2个月',
-            'milestones': ['学习高级功能', '探索集成选项', '优化使用技巧']
-        },
-        {
-            'phase': '优化自动化',
-            'focus': '实现工作流自动化',
-            'duration': '持续进行',
-            'milestones': ['识别重复任务', '实施自动化方案', '持续监控改进']
-        }
-    ]
+                for category, content in data['付费解读'].items():
+                    with st.expander(f"**{category}**"):
+                        if isinstance(content, dict):
+                            for key, value in content.items():
+                                st.write(f"**{key}:**")
+                                if isinstance(value, list):
+                                    for item in value:
+                                        st.write(f"- {item}")
+                                else:
+                                    st.write(value)
+                        else:
+                            st.write(content)
 
-    return analysis
-
-def display_basic_analysis(user_info):
-    """显示基础分析结果"""
-    st.success("✅ 基础分析完成！")
-
-    recommendations = basic_recommendation_analysis(user_info)
+def display_app_analysis(user_profile, premium=False):
+    """显示应用分析结果"""
+    recommendations = app_recommendation_analysis(user_profile)
 
     st.write("### 🎯 为您推荐的应用")
 
     for rec in recommendations:
-        st.write(f"**{rec['category']}** - {rec['reason']}")
+        category = rec['category']
+        apps = rec['apps']
+        priority = rec['priority']
+        reason = rec['reason']
 
-        for app in rec['apps']:
-            with st.expander(f"**{app['name']}** ⭐ {app['rating']}"):
-                st.write(f"**类型:** {app['type']}")
-                st.write(f"**价格:** {app['price']}")
-                st.write(f"**描述:** {app['description']}")
-                st.link_button("访问官网", app['url'])
-
-        st.divider()
-
-def display_premium_analysis(user_info):
-    """显示付费深度分析"""
-    st.success("✅ 深度分析已解锁！")
-
-    premium_data = premium_analysis(user_info)
-
-    # 用户画像评分
-    st.write("### 👤 用户画像分析")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("匹配度评分", f"{premium_data['profile_score']}/100")
-    with col2:
-        st.metric("推荐应用数", len(premium_data['recommendations']) * 3)
-    with col3:
-        st.metric("预计节省", "20-30%")
-
-    # 完整应用推荐
-    st.write("### 🎯 完整应用推荐")
-
-    for rec in premium_data['recommendations']:
-        priority_color = "🟢" if rec['priority'] == '高' else "🟡"
-        st.write(f"#### {priority_color} {rec['category']}（优先级：{rec['priority']}）")
-        st.write(f"*{rec['reason']}*")
+        priority_icon = "🟢" if priority == '高' else "🟡"
+        st.write(f"#### {priority_icon} {category}")
+        st.write(f"*{reason}*")
 
         cols = st.columns(3)
-        for idx, app in enumerate(rec['apps']):
+        for idx, app in enumerate(apps):
             with cols[idx % 3]:
                 st.write(f"**{app['name']}**")
                 st.write(f"⭐ {app['rating']} | {app['price']}")
@@ -292,128 +675,257 @@ def display_premium_analysis(user_info):
 
         st.divider()
 
-    # 工作流程建议
-    st.write("### 🔄 工作流程建议")
-    for workflow in premium_data['workflow_suggestions']:
-        with st.expander(f"**{workflow['phase']}** - {workflow['duration']}"):
-            for task in workflow['tasks']:
-                st.write(f"- {task}")
-
-    # 成本分析
-    st.write("### 💰 成本分析")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.write(f"**月度成本:** ¥{premium_data['cost_analysis']['monthly']}")
-        st.write(f"**年度成本:** ¥{premium_data['cost_analysis']['yearly']}")
-    with col2:
-        st.write("**省钱小贴士:**")
-        for tip in premium_data['cost_analysis']['savings_tips']:
-            st.write(f"- {tip}")
-
-    # 学习路径
-    st.write("### 📚 学习路径规划")
-    for phase in premium_data['learning_path']:
-        with st.expander(f"**{phase['phase']}** - {phase['focus']}（{phase['duration']}）"):
-            if phase['phase'] == "基础设置":
-                st.write("""- 观看官方教程
-- 完成基础设置
-- 导入示例数据""")
-            elif phase['phase'] == "工作流建立":
-                st.write("""- 设计个人工作流
-- 建立项目模板
-- 测试和调优""")
-            elif phase['phase'] == "高级功能":
-                st.write("""- 学习高级特性
-- 探索集成选项
-- 优化使用技巧""")
-            elif phase['phase'] == "优化自动化":
-                st.write("""- 识别重复任务
-- 实施自动化方案
-- 持续监控改进""")
-
-    # 导出报告
-    st.divider()
-    st.write("### 📄 导出分析报告")
-    if st.button("生成PDF报告"):
-        st.success("报告生成中...（功能开发中）")
-
-    if st.button("重新开始"):
-        st.session_state.basic_analysis_done = False
-        st.session_state.payment_done = False
-        st.session_state.user_info = {}
-        st.rerun()
-
 def main():
     """主函数"""
-    st.title("🌍 Nomad Apper")
-    st.write("**数字游民应用推荐系统**")
+    st.title("🌍 Nomad Suite")
+    st.write("**数字游民签证 + 应用推荐助手**")
 
     # 侧边栏
     with st.sidebar:
-        st.write("### 关于")
-        st.write("为数字游民量身定制的应用推荐系统")
+        st.write("### 🎯 选择功能")
+        feature = st.radio(
+            "功能模块",
+            ["签证助手", "应用推荐"]
+        )
+
         st.divider()
-        st.write("### 定价")
+
+        st.write("### 💰 定价")
         st.write("**基础分析** - 免费")
-        st.write("- 基础应用推荐")
-        st.write("- 简单使用建议")
+        st.write("- 国家/应用推荐")
+        st.write("- 基础信息")
         st.divider()
         st.write("**深度分析** - ¥99")
-        st.write("- 完整应用推荐")
-        st.write("- 工作流程建议")
-        st.write("- 成本分析")
-        st.write("- 学习路径规划")
+        st.write("- 完整指南")
+        st.write("- 核心材料清单")
+        st.write("- 风险与注意事项")
+
+    # 功能选择
+    if feature == "签证助手":
+        show_visa_assistant()
+    else:
+        show_app_assistant()
+
+def show_visa_assistant():
+    """显示签证助手"""
+    st.header("🛂 数字游民签证助手")
 
     # 用户信息收集
     if not st.session_state.basic_analysis_done:
-        st.write("### 📝 请告诉我们一些关于您的信息")
+        st.write("### 📝 请填写个人信息")
 
-        with st.form("user_info_form"):
+        with st.form("visa_form"):
+            # 基本信息
+            st.write("**基本信息**")
             col1, col2 = st.columns(2)
             with col1:
-                name = st.text_input("姓名", placeholder="请输入您的姓名")
-                email = st.text_input("邮箱", placeholder="your@email.com")
-                profession = st.text_input("职业", placeholder="如：设计师、开发者、营销人员")
+                age = st.number_input("年龄", min_value=18, max_value=100, value=30)
+                marital_status = st.selectbox("婚姻状况", ["未婚", "已婚", "离异"])
             with col2:
-                budget = st.selectbox("预算范围", ["低", "中等", "高"])
-                experience = st.selectbox("数字游民经验", ["初级", "中级", "高级"])
-                goals = st.text_area("主要目标", placeholder="请简述您的主要工作目标")
+                has_children = st.selectbox("是否有子女", ["无", "有"])
+                if has_children == "有":
+                    children_count = st.number_input("子女数量", min_value=1, max_value=10, value=1)
+                else:
+                    children_count = 0
 
-            submitted = st.form_submit_button("开始基础分析", type="primary")
+            # 职业信息
+            st.write("**职业信息**")
+            col1, col2 = st.columns(2)
+            with col1:
+                profession = st.text_input(
+                    "职业",
+                    placeholder="如：程序员、设计师、自媒体、咨询顾问"
+                )
+            with col2:
+                monthly_income = st.number_input(
+                    "月收入（人民币）",
+                    min_value=0,
+                    max_value=1000000,
+                    value=15000,
+                    step=1000,
+                    help="用于评估签证资格"
+                )
+
+            # 财务信息
+            st.write("**财务信息**")
+            col1, col2 = st.columns(2)
+            with col1:
+                savings_amount = st.number_input(
+                    "存款金额（万元）",
+                    min_value=0,
+                    max_value=1000,
+                    value=50,
+                    step=10,
+                    help="用于签证资金证明"
+                )
+            with col2:
+                budget_range = st.number_input(
+                    "预算范围（元/月生活费）",
+                    min_value=1000,
+                    max_value=50000,
+                    value=8000,
+                    step=500,
+                    help="预计国外月生活费"
+                )
+
+            # 移居偏好
+            st.write("**移居偏好**")
+            col1, col2 = st.columns(2)
+            with col1:
+                target_continent = st.multiselect(
+                    "目标大洲",
+                    ["欧洲", "亚洲", "美洲", "大洋洲"]
+                )
+                climate_preference = st.selectbox(
+                    "气候偏好",
+                    ["温暖", "凉爽", "四季分明", "无所谓"]
+                )
+            with col2:
+                city_preference = st.selectbox(
+                    "城市偏好",
+                    ["繁华都市", "安静小镇", "海边", "山区", "无所谓"]
+                )
+
+            # 偏好选择（Helper风格）
+            preference = st.multiselect(
+                "生活环境偏好（可多选）",
+                [
+                    "海滩", "城市", "低成本", "安全", "网络好",
+                    "气候温和", "华人社区", "英语普及", "教育资源",
+                    "医疗水平", "美食丰富", "文化丰富", "交通便利",
+                    "自然风光", "夜生活", "购物方便", "运动设施"
+                ],
+                help="选择您对生活环境的偏好"
+            )
+
+            custom_preference = st.text_input(
+                "其他偏好（自定义）",
+                placeholder="如：滑雪、潜水、艺术氛围等"
+            )
+
+            # 其他信息
+            st.write("**其他信息**")
+            col1, col2 = st.columns(2)
+            with col1:
+                experience = st.selectbox(
+                    "数字游民经验",
+                    ["初级", "中级", "高级"]
+                )
+            with col2:
+                goals = st.text_area(
+                    "主要目标",
+                    placeholder="请简述您的移居目标"
+                )
+
+            submitted = st.form_submit_button("开始分析", type="primary")
 
             if submitted:
-                if not name or not email:
-                    st.error("请填写姓名和邮箱")
+                if not profession or monthly_income == 0:
+                    st.error("请填写职业和月收入")
                 else:
-                    st.session_state.user_info = {
-                        'name': name,
-                        'email': email,
+                    st.session_state.user_profile = {
+                        'age': age,
+                        'marital_status': marital_status,
+                        'has_children': has_children,
+                        'children_count': children_count,
                         'profession': profession,
-                        'budget': budget,
+                        'monthly_income': monthly_income,
+                        'savings_amount': savings_amount * 10000,
+                        'budget_range': budget_range,
+                        'target_continent': target_continent,
+                        'climate_preference': climate_preference,
+                        'city_preference': city_preference,
+                        'preference': preference,
+                        'custom_preference': custom_preference,
                         'experience': experience,
-                        'goals': goals,
-                        'user_id': generate_user_id(email)
+                        'goals': goals
                     }
                     st.session_state.basic_analysis_done = True
                     st.rerun()
 
-    # 显示基础分析结果
-    elif st.session_state.basic_analysis_done and not st.session_state.payment_done:
-        display_basic_analysis(st.session_state.user_info)
+    # 显示分析结果
+    else:
+        user_profile = st.session_state.user_profile
 
-        st.divider()
-        st.write("### 🔓 解锁深度分析")
-        st.write("获取完整应用推荐、工作流程建议、成本分析和学习路径规划")
+        if not st.session_state.payment_done:
+            display_visa_analysis(user_profile, premium=False)
 
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("支付 ¥99 解锁深度分析", type="primary"):
-                st.session_state.payment_done = True
-                st.rerun()
+            st.divider()
+            st.write("### 🔓 解锁深度分析")
 
-    # 显示付费深度分析
-    elif st.session_state.payment_done:
-        display_premium_analysis(st.session_state.user_info)
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                if st.button("支付 ¥99 解锁完整指南", type="primary"):
+                    st.session_state.payment_done = True
+                    st.rerun()
+        else:
+            display_visa_analysis(user_profile, premium=True)
+
+def show_app_assistant():
+    """显示应用推荐助手"""
+    st.header("💻 数字游民应用推荐")
+
+    # 简化的表单
+    if not st.session_state.get('app_analysis_done', False):
+        with st.form("app_form"):
+            profession = st.text_input(
+                "职业",
+                placeholder="如：程序员、设计师、营销人员"
+            )
+
+            monthly_income = st.number_input(
+                "月收入（人民币）",
+                min_value=0,
+                max_value=1000000,
+                value=15000,
+                step=1000
+            )
+
+            budget_range = st.number_input(
+                "工具预算（元/月）",
+                min_value=0,
+                max_value=5000,
+                value=500,
+                step=50,
+                help="每月用于购买工具软件的预算"
+            )
+
+            experience = st.selectbox(
+                "数字游民经验",
+                ["初级", "中级", "高级"]
+            )
+
+            submitted = st.form_submit_button("开始分析", type="primary")
+
+            if submitted:
+                if not profession:
+                    st.error("请填写职业")
+                else:
+                    st.session_state.user_profile = {
+                        'profession': profession,
+                        'monthly_income': monthly_income,
+                        'budget_range': budget_range,
+                        'experience': experience
+                    }
+                    st.session_state.app_analysis_done = True
+                    st.rerun()
+
+    else:
+        user_profile = st.session_state.user_profile
+
+        if not st.session_state.get('app_payment_done', False):
+            display_app_analysis(user_profile, premium=False)
+
+            st.divider()
+            st.write("### 🔓 解锁深度分析")
+
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                if st.button("支付 ¥99 解锁完整推荐", type="primary"):
+                    st.session_state.app_payment_done = True
+                    st.rerun()
+        else:
+            display_app_analysis(user_profile, premium=True)
 
 if __name__ == "__main__":
     main()

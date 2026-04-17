@@ -597,8 +597,9 @@ def main():
         st.write("- 完整指南")
         st.write("- 核心材料清单")
         st.write("- 风险与注意事项")
-#直接显示签证助手
-   show_visa_assistant()
+
+    # 直接显示签证助手          #  ← 这行前面有4个空格
+    show_visa_assistant()        #  ← 这行前面也有4个空格（与注释对齐）
 
 def show_visa_assistant():
     """显示签证助手"""

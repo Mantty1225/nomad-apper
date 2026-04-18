@@ -740,21 +740,9 @@ def show_visa_assistant():
 
     # 显示分析结果
     else:
-        user_profile = st.session_state.user_profile
-
-        if not st.session_state.payment_done:
-            display_visa_analysis(user_profile, premium=False)
-
-            st.divider()
-            st.write("### 🔓 解锁深度分析")
-
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col2:
-                if st.button("支付 ¥99 解锁完整指南", type="primary"):
-                    st.session_state.payment_done = True
-                    st.rerun()
-        else:
-            display_visa_analysis(user_profile, premium=True)
+    user_profile = st.session_state.user_profile
+    # 直接显示深度分析（免费）
+    display_visa_analysis(user_profile, premium=True)
 
 
 if __name__ == "__main__":

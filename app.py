@@ -589,11 +589,11 @@ def main():
     # 侧边栏
     with st.sidebar:
         st.write("### 💰 定价")
-        st.write("**基础分析** - 免费")
+        st.write("**基础分析**" )
         st.write("- 国家匹配")
         st.write("- 基础信息")
         st.divider()
-        st.write("**深度分析** - ¥99")
+        st.write("**深度分析**" )
         st.write("- 完整指南")
         st.write("- 核心材料清单")
         st.write("- 风险与注意事项")
@@ -740,9 +740,9 @@ def show_visa_assistant():
 
     # 显示分析结果
     else:
-    user_profile = st.session_state.user_profile
+        user_profile = st.session_state.user_profile
     # 直接显示深度分析（免费）
-    display_visa_analysis(user_profile, premium=True)
+        display_visa_analysis(user_profile, premium=True)
 
 
 if __name__ == "__main__":
